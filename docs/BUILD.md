@@ -52,4 +52,4 @@ CTestは音声処理・保存・画面レイアウトなどのC++テストを実
 
 ## GitHub Actions
 
-push、pull request、手動実行でSemgrepとGitleaksを実行する。両方に成功した場合のみWindowsのビルド、CTest、MCP単体・E2Eテストへ進む。バイナリの配布・アップロード・デプロイは行わない。
+push、pull request、手動実行でSemgrepとGitleaksを実行する。両方に成功した場合のみWindows Server 2022／Visual Studio 2022でのビルド、CTest、MCP単体・E2Eテストへ進む。バイナリの配布・アップロード・デプロイは行わない。
