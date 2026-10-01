@@ -1,5 +1,7 @@
 # SimpleRecPro
 
+[![Source checks](https://github.com/nbtns/SimpleRecPro_Public/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/nbtns/SimpleRecPro_Public/actions/workflows/checks.yml)
+
 Windows向けの録音・音声編集アプリケーションです。録音、複数トラックの編集、音質調整、保存、WAV／MP3書き出しを一つの画面で扱えます。MCPを通じて、会話から選択した音声の調整や変更前後の比較も操作できます。
 
 ![SimpleRecProの複数トラック編集画面](docs/images/workspace.png)

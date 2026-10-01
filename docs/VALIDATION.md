@@ -2,7 +2,7 @@
 
 確認日：2026-10-01。
 
-このファイルは公開用ソースに対して実行した確認を記録する。GitHub Actionsの実行結果、実機録音、外部プラグインの聴感確認とは区別する。
+このファイルは公開用ソースの準備時にローカルで実行した確認を記録する。実機録音、外部プラグインの聴感確認とは区別する。公開後のGitHub Actionsの結果は、下記のリンクから確認できる。
 
 ## 確認環境
 
@@ -10,7 +10,7 @@
 - JUCE 8.0.13、ARA SDK 2.1.0、Signalsmith Stretch 1.1.0、FFmpeg 7.1.1 essentials build。
 - ASIOは無効。音声・プロジェクトのテストには合成音声を使用。
 
-## 実行結果
+## ローカルの実行結果
 
 | 確認 | 結果 |
 | --- | --- |
@@ -26,9 +26,11 @@
 
 Releaseビルドは事前取得した同じ版の依存ソースをCMakeの明示的なパス指定で利用した。JUCEは公式固定コミットのアーカイブを取得し、SHA-256を検査した。FFmpegも固定版の公式ZIPを使用した。
 
-## 実行していない確認
+## GitHubでの自動検証
 
-- GitHub Actions上の実行と、Semgrepによる実際の静的解析。ワークフローは用意済み。
+[Source checksの実行結果](https://github.com/nbtns/SimpleRecPro_Public/actions/workflows/checks.yml)から、各コミットの結果を確認できる。SemgrepとGitleaksが成功した場合にのみ、Windows Server 2022／Visual Studio 2022でのビルド、CTest、MCP単体・E2Eテストを実行する。
+
+## 実機で確認していない項目
 - 実オーディオ機器での録音・再生、利用者による音の聴き比べ。
 - 外部VST3・PitchNetの実製品を使った互換性・音質・編集画面・保存復元の確認。
 - 長時間・大容量の実プロジェクトでの操作評価、ASIO有効構成。
