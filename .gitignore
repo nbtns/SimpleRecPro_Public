@@ -1,0 +1,51 @@
+# Build output and downloaded dependencies
+/build/
+/build-*/
+/out/
+/.vs/
+/JuceLibraryCode/
+CMakeUserPresets.json
+*.user
+*.suo
+*.obj
+*.o
+*.exe
+*.dll
+*.pdb
+*.map
+*.log
+*.zip
+*.7z
+*.vst3
+
+# Machine settings and credentials
+/.codex/
+/.agents/
+/.git_disabled/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+
+# User audio and projects
+*.wav
+*.mp3
+*.flac
+*.aiff
+*.aif
+*.ogg
+*.srec
+*.db
+*.sqlite3
+
+# Python and editors
+__pycache__/
+*.py[cod]
+.venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

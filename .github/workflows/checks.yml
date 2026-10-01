@@ -1,0 +1,87 @@
+name: Source checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: semgrep/semgrep:1.178.0
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Static security checks
+        run: semgrep scan --config p/ci --error --metrics off .
+
+  gitleaks:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download checksum-pinned Gitleaks
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP"
+          curl --fail --location --retry 3 \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz \
+            --output gitleaks.tar.gz
+          echo '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz' | sha256sum --check
+          tar -xzf gitleaks.tar.gz gitleaks
+      - name: Check all Git history for secrets
+        shell: bash
+        run: '"$RUNNER_TEMP/gitleaks" git --redact --no-banner --log-opts="--all" .'
+
+  windows:
+    name: Windows build and tests
+    needs: [semgrep, gitleaks]
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Prepare checksum-pinned FFmpeg for local tests
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'ffmpeg-7.1.1.zip'
+          Invoke-WebRequest `
+            'https://github.com/GyanD/codexffmpeg/releases/download/7.1.1/ffmpeg-7.1.1-essentials_build.zip' `
+            -OutFile $archive
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne `
+              '04861d3339c5ebe38b56c19a15cf2c0cc97f5de4fa8910e4d47e5e6404e4a2d4') {
+            throw 'FFmpeg checksum mismatch.'
+          }
+          $destination = Join-Path $env:RUNNER_TEMP 'ffmpeg-dist'
+          Expand-Archive -LiteralPath $archive -DestinationPath $destination
+          $ffmpegExe = Join-Path $destination 'ffmpeg-7.1.1-essentials_build/bin/ffmpeg.exe'
+          if (!(Test-Path -LiteralPath $ffmpegExe -PathType Leaf)) {
+            throw 'ffmpeg.exe is missing.'
+          }
+          "FFMPEG_EXECUTABLE=$ffmpegExe" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Configure
+        shell: pwsh
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 "-DSIMPLE_REC_FFMPEG_EXECUTABLE=$env:FFMPEG_EXECUTABLE" -DSIMPLE_REC_ENABLE_ASIO=OFF
+      - name: Build
+        run: cmake --build build --config Release --parallel 3
+      - name: Audio, project and layout tests
+        run: ctest --test-dir build -C Release --output-on-failure
+      - name: MCP protocol tests
+        run: python tools/test_simplerecpro_mcp.py
+      - name: MCP end-to-end tests
+        run: python tools/test_assistant_e2e.py --host "build/SimpleRecProTests_artefacts/Release/SimpleRecProTests.exe" --workdir "build/assistant-e2e"
